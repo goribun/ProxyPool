@@ -2,25 +2,49 @@ package storage
 
 import (
 	"log"
-	"math/rand"
 	"sync"
-	"time"
-
-	"github.com/henson/ProxyPool/models"
 	"github.com/parnurzeal/gorequest"
 )
 
-// CheckProxy .
-func CheckProxy(ip *models.IP) {
+//检查IP，可用则放入Redis
+func CheckAndAddProxy(ip string) {
 	if CheckIP(ip) {
 		ProxyAdd(ip)
 	}
 }
 
-// CheckIP is to check the ip work or not
-func CheckIP(ip *models.IP) bool {
+// 检查Redis内代理IP是否可用
+func CheckProxyInRedis() {
+	conn := NewRedisStorage()
+	x := conn.Count()
+	log.Println("Before check, Redis has:", x, "records.")
+	ips, err := conn.GetAll()
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+	var wg sync.WaitGroup
+	for _, v := range ips {
+		wg.Add(1)
+		log.Println("xxxxxxxxxxxxxxxxxxxxxx")
+
+		go func(v string) {
+			log.Println("????????????????????????????")
+			if !CheckIP(v) {
+				ProxyDel(v)
+			}
+			wg.Done()
+		}(v)
+	}
+	wg.Wait()
+	x = conn.Count()
+	log.Println("After check, Redis has:", x, "records.")
+}
+
+// 检查IP是否可用
+func CheckIP(ip string) bool {
 	pollURL := "http://httpbin.org/get"
-	resp, _, errs := gorequest.New().Proxy("http://" + ip.Data).Get(pollURL).End()
+	resp, _, errs := gorequest.New().Proxy("http://" + ip).Get(pollURL).End()
 	if errs != nil {
 		return false
 	}
@@ -30,64 +54,32 @@ func CheckIP(ip *models.IP) bool {
 	return false
 }
 
-// CheckProxyDB to check the ip in DB
-func CheckProxyDB() {
-	conn := NewStorage()
-	x := conn.Count()
-	log.Println("Before check, DB has:", x, "records.")
-	ips, err := conn.GetAll()
+//随机取出一个IP
+func ProxyGet() string {
+	conn := NewRedisStorage()
+	ip, err := conn.GetOne()
 	if err != nil {
 		log.Println(err.Error())
-		return
 	}
-	var wg sync.WaitGroup
-	for _, v := range ips {
-		wg.Add(1)
-		go func(v *models.IP) {
-			if !CheckIP(v) {
-				ProxyDel(v)
-			}
-			wg.Done()
-		}(v)
-	}
-	wg.Wait()
-	x = conn.Count()
-	log.Println("After check, DB has:", x, "records.")
+	return ip
 }
 
-// ProxyRandom .
-func ProxyRandom() (ip *models.IP) {
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	conn := NewStorage()
-	ips, _ := conn.GetAll()
-	x := len(ips)
-
-	return ips[r.Intn(x)]
-}
-
-// ProxyFind .
-func ProxyFind(value string) (ip *models.IP) {
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	conn := NewStorage()
-	ips, _ := conn.FindAll(value)
-	x := len(ips)
-
-	return ips[r.Intn(x)]
-}
-
-// ProxyAdd .
-func ProxyAdd(ip *models.IP) {
-	conn := NewStorage()
-	_, err := conn.GetOne(ip.Data)
+//增加一个IP
+func ProxyAdd(ip string) {
+	conn := NewRedisStorage()
+	err := conn.Add(ip)
 	if err != nil {
-		conn.Create(ip)
+		log.Println(err.Error())
 	}
+	log.Println("Add valid ip:", ip)
+
 }
 
-// ProxyDel .
-func ProxyDel(ip *models.IP) {
-	conn := NewStorage()
+//删除一个IP
+func ProxyDel(ip string) {
+	conn := NewRedisStorage()
 	if err := conn.Delete(ip); err != nil {
 		log.Println(err.Error())
 	}
+	log.Println("Del invalid ip:", ip)
 }

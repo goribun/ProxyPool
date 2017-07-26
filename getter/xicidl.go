@@ -5,12 +5,11 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/henson/ProxyPool/models"
 	"github.com/nladuo/go-phantomjs-fetcher"
 )
 
 // Xici get ip from xicidaili.com
-func Xici() (result []*models.IP) {
+func Xici() (result []string) {
 	pollURL := "http://www.xicidaili.com/nn/"
 
 	fetcher, err := phantomjs.NewFetcher(2017, nil)
@@ -34,10 +33,8 @@ func Xici() (result []*models.IP) {
 		v = strings.Replace(v, "</td>", "", -1)
 		v = strings.Replace(v, " ", "", -1)
 		v = strings.Replace(v, "<br>", ":", -1)
-		ip := models.NewIP()
-		ip.Data = v
-		ip.Type = "http"
-		result = append(result, ip)
+
+		result = append(result, v)
 	}
 	log.Println("Xici done.")
 	return

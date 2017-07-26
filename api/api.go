@@ -5,39 +5,26 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/henson/ProxyPool/storage"
-	"github.com/henson/ProxyPool/util"
+	"github.com/goribun/ProxyPool/storage"
+	"github.com/goribun/ProxyPool/util"
 )
 
-// VERSION for this program
+//程序版本
 const VERSION = "/v1"
 
-// Run for request
-func Run() {
+// 提供api服务
+func Serve() {
 	mux := http.NewServeMux()
 	mux.HandleFunc(VERSION+"/ip", ProxyHandler)
-	mux.HandleFunc(VERSION+"/https", FindHandler)
 	log.Println("Starting server", util.NewConfig().Host)
 	http.ListenAndServe(util.NewConfig().Host, mux)
 }
 
-// ProxyHandler .
+//代理处理器
 func ProxyHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		w.Header().Set("content-type", "application/json")
-		b, err := json.Marshal(storage.ProxyRandom())
-		if err != nil {
-			return
-		}
-		w.Write(b)
-	}
-}
-
-// FindHandler .
-func FindHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "GET" {
-		w.Header().Set("content-type", "application/json")
-		b, err := json.Marshal(storage.ProxyFind("https"))
+		b, err := json.Marshal(storage.ProxyGet())
 		if err != nil {
 			return
 		}

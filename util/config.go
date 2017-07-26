@@ -8,19 +8,18 @@ import (
 
 // Config struct defines the config structure
 type Config struct {
-	Mongo MongoConfig `json:"mongo"`
+	Redis RedisConfig `json:"redis"`
 	Host  string      `json:"host"`
 }
 
-// MongoConfig has config values for Mongo
-type MongoConfig struct {
-	Addr  string `json:"addr"`
-	DB    string `json:"db"`
-	Table string `json:"table"`
-	Event string `json:"event"`
+type RedisConfig struct {
+	Addr      string `json:"addr"`
+	Key       string  `json:"key"`
+	MaxIdle   int `json:"maxIdle"`
+	MaxActive int `json:"maxActive"`
 }
 
-// NewConfig parses config file and return Config struct
+//创建配置文件
 func NewConfig() *Config {
 	file, err := ioutil.ReadFile("./config.json")
 	if err != nil {

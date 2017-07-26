@@ -6,12 +6,11 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/henson/ProxyPool/models"
 	"github.com/nladuo/go-phantomjs-fetcher"
 )
 
 // XDL get ip from xdaili.cn
-func XDL() (result []*models.IP) {
+func XDL() (result []string) {
 	pollURL := "http://www.xdaili.cn/freeproxy.html"
 
 	fetcher, err := phantomjs.NewFetcher(2015, nil)
@@ -35,13 +34,8 @@ func XDL() (result []*models.IP) {
 	doc.Find("#target > tr").Each(func(i int, s *goquery.Selection) {
 		node := strconv.Itoa(i + 1)
 		ss, _ := s.Find("tr:nth-child(" + node + ") > td:nth-child(1)").Html()
-		sss, _ := s.Find("tr:nth-child(" + node + ") > td:nth-child(2)").Html()
-		ssss, _ := s.Find("tr:nth-child(" + node + ") > td:nth-child(4)").Html()
-		ssss = strings.Replace(strings.ToLower(ssss), "/", ",", -1)
-		ip := models.NewIP()
-		ip.Data = ss + ":" + sss
-		ip.Type = ssss
-		result = append(result, ip)
+
+		result = append(result, ss)
 	})
 	log.Println("XDL done.")
 	return

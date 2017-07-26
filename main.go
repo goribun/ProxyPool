@@ -1,37 +1,48 @@
 package main
 
 import (
-	"log"
+	//"fmt"
 	"runtime"
-	"sync"
-	"time"
+	"log"
 
-	"github.com/henson/ProxyPool/api"
-	"github.com/henson/ProxyPool/getter"
-	"github.com/henson/ProxyPool/models"
-	"github.com/henson/ProxyPool/storage"
+	"github.com/goribun/ProxyPool/storage"
+
+	"github.com/goribun/ProxyPool/api"
+	"time"
+	"sync"
+	"github.com/goribun/ProxyPool/getter"
 )
 
 func main() {
+
+	conn := storage.NewRedisStorage()
+	//fmt.Println(conn)
+	//conn.Add("121.68.1.108")
+	//
+	//bb, _ := conn.GetAll()
+	//for xxx, yyy := range bb {
+	//	fmt.Println(xxx, yyy, "???")
+	//}
+
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	ipChan := make(chan *models.IP, 2000)
-	conn := storage.NewStorage()
-
-	// Start HTTP
+	ipChan := make(chan string, 2000)
+	//	conn := storage.NewStorage()
+	//
+	//	// 启动HTTP服务
 	go func() {
-		api.Run()
+		api.Serve()
 	}()
 
-	// Check the IPs in DB
+	// 检查Redis内的IP可用性
 	go func() {
-		storage.CheckProxyDB()
+		storage.CheckProxyInRedis()
 	}()
 
-	// Check the IPs in channel
+	// 检查channel内的IP，可用则放入Redis
 	for i := 0; i < 50; i++ {
 		go func() {
 			for {
-				storage.CheckProxy(<-ipChan)
+				storage.CheckAndAddProxy(<-ipChan)
 			}
 		}()
 	}
@@ -43,26 +54,25 @@ func main() {
 		if len(ipChan) < 100 {
 			go run(ipChan)
 		}
-		time.Sleep(10 * time.Minute)
+		time.Sleep(100 * time.Minute)
 	}
 }
 
-func run(ipChan chan<- *models.IP) {
+func run(ipChan chan<- string) {
 	var wg sync.WaitGroup
-	funs := []func() []*models.IP{
-		getter.Data5u,
+	funs := []func() []string{
+		//getter.Data5u,
 		getter.IP66,
-		getter.KDL,
-		getter.GBJ,
-		getter.Xici,
-		getter.XDL,
-		getter.IP181,
-		//getter.YDL,		//失效的采集脚本，用作系统容错实验
-		getter.PLP,
+		//getter.KDL,
+		//getter.GBJ,
+		//getter.Xici,
+		//getter.XDL,
+		//getter.IP181,
+		//getter.PLP,
 	}
 	for _, f := range funs {
 		wg.Add(1)
-		go func(f func() []*models.IP) {
+		go func(f func() []string) {
 			temp := f()
 			for _, v := range temp {
 				ipChan <- v
