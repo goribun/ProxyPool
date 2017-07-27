@@ -1,14 +1,14 @@
 {
-  "mongo": {
-    "addr": "mongodb://127.0.0.1:27017",
-    "db": "temp",
-    "table": "pool"
-  },
   "redis": {
     "addr": "127.0.0.1:6379",
     "key": "ProxyPool.proxy_ip_set",
     "maxIdle": 5,
     "maxActive": 50
   },
-  "host": ":8080"
+  "host": ":8080",
+  "timeout": 30,
+  "crons": {
+    "getProxyCron": "0 23 17 * * ?",
+    "checkRedisCron": "0 15 1 * * ? *"
+  }
 }

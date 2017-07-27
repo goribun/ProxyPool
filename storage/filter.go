@@ -3,21 +3,27 @@ package storage
 import (
 	"log"
 	"sync"
+	"time"
+
 	"github.com/parnurzeal/gorequest"
+	"github.com/goribun/ProxyPool/util"
 )
 
 //检查IP，可用则放入Redis
 func CheckAndAddProxy(ip string) {
 	if CheckIP(ip) {
+		log.Println("Check And Add Proxy IP:(ip)")
 		ProxyAdd(ip)
 	}
 }
 
 // 检查Redis内代理IP是否可用
 func CheckProxyInRedis() {
+
+	log.Println("========================Check Proxy InRedis Start===============")
+
 	conn := NewRedisStorage()
-	x := conn.Count()
-	log.Println("Before check, Redis has:", x, "records.")
+
 	ips, err := conn.GetAll()
 	if err != nil {
 		log.Println(err.Error())
@@ -26,10 +32,8 @@ func CheckProxyInRedis() {
 	var wg sync.WaitGroup
 	for _, v := range ips {
 		wg.Add(1)
-		log.Println("xxxxxxxxxxxxxxxxxxxxxx")
 
 		go func(v string) {
-			log.Println("????????????????????????????")
 			if !CheckIP(v) {
 				ProxyDel(v)
 			}
@@ -37,14 +41,20 @@ func CheckProxyInRedis() {
 		}(v)
 	}
 	wg.Wait()
-	x = conn.Count()
-	log.Println("After check, Redis has:", x, "records.")
+	log.Println("========================Check Proxy InRedis Finish===============")
 }
 
 // 检查IP是否可用
 func CheckIP(ip string) bool {
+
+	start := time.Now()
+
 	pollURL := "http://httpbin.org/get"
-	resp, _, errs := gorequest.New().Proxy("http://" + ip).Get(pollURL).End()
+	resp, _, errs := gorequest.New().Proxy("http://" + ip).Get(pollURL).Timeout(util.Cfg.Timeout * time.Second).End()
+
+	end := time.Now()
+	log.Printf("Check IP:(%v)  Time:(%v)", ip, end.Sub(start))
+
 	if errs != nil {
 		return false
 	}

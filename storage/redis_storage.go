@@ -5,15 +5,12 @@ import (
 	"github.com/goribun/ProxyPool/util"
 )
 
-//Config 全局配置文件
-var Cfg = util.NewConfig()
-
 //使用连接池
 var RedisClient = &redis.Pool{
-	MaxIdle:   Cfg.Redis.MaxIdle,
-	MaxActive: Cfg.Redis.MaxActive,
+	MaxIdle:   util.Cfg.Redis.MaxIdle,
+	MaxActive: util.Cfg.Redis.MaxActive,
 	Dial: func() (redis.Conn, error) {
-		conn, err := redis.Dial("tcp", string(Cfg.Redis.Addr))
+		conn, err := redis.Dial("tcp", string(util.Cfg.Redis.Addr))
 		if err != nil {
 			return nil, err
 		}
@@ -28,7 +25,7 @@ type RedisStorage struct {
 
 //创建RedisStorage实例
 func NewRedisStorage() *RedisStorage {
-	return &RedisStorage{key: Cfg.Redis.Key}
+	return &RedisStorage{key: util.Cfg.Redis.Key}
 }
 
 //返回redis连接
