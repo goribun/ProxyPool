@@ -13,6 +13,13 @@ func Xici() (result []string) {
 	pollURL := "http://www.xicidaili.com/nn/"
 
 	fetcher, err := phantomjs.NewFetcher(2017, nil)
+
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println(err)
+		}
+	}()
+
 	defer fetcher.ShutDownPhantomJSServer()
 	if err != nil {
 		log.Println(err.Error())

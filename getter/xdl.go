@@ -14,6 +14,13 @@ func XDL() (result []string) {
 	pollURL := "http://www.xdaili.cn/freeproxy.html"
 
 	fetcher, err := phantomjs.NewFetcher(2015, nil)
+
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println(err)
+		}
+	}()
+
 	defer fetcher.ShutDownPhantomJSServer()
 	if err != nil {
 		log.Println(err.Error())
@@ -34,8 +41,8 @@ func XDL() (result []string) {
 	doc.Find("#target > tr").Each(func(i int, s *goquery.Selection) {
 		node := strconv.Itoa(i + 1)
 		ss, _ := s.Find("tr:nth-child(" + node + ") > td:nth-child(1)").Html()
-
-		result = append(result, ss)
+		sss, _ := s.Find("tr:nth-child(" + node + ") > td:nth-child(2)").Html()
+		result = append(result, ss+":"+sss)
 	})
 	log.Println("XDL done.")
 	return

@@ -14,6 +14,13 @@ func KDL() (result []string) {
 	pollURL := "http://www.kuaidaili.com/proxylist/"
 	//create a fetcher which seems to a httpClient
 	fetcher, err := phantomjs.NewFetcher(2016, nil)
+
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println(err)
+		}
+	}()
+
 	defer fetcher.ShutDownPhantomJSServer()
 	if err != nil {
 		log.Println(err.Error())

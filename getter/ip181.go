@@ -24,8 +24,9 @@ func IP181() (result []string) {
 	}
 	doc.Find("tr.warning").Each(func(i int, s *goquery.Selection) {
 		ss := s.Find("td:nth-child(1)").Text()
+		sss := s.Find("td:nth-child(2)").Text()
 
-		result = append(result, ss)
+		result = append(result, ss+":"+sss)
 	})
 
 	log.Println("IP181 done.")

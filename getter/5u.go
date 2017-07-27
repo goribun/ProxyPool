@@ -25,8 +25,9 @@ func Data5u() (result []string) {
 	}
 	doc.Find("body > div.wlist > li:nth-child(2) > ul").Each(func(i int, s *goquery.Selection) {
 		node := strconv.Itoa(i + 1)
+		ss := s.Find("ul:nth-child(" + node + ") > span:nth-child(1) > li").Text()
 		sss := s.Find("ul:nth-child(" + node + ") > span:nth-child(2) > li").Text()
-		result = append(result, sss)
+		result = append(result, ss+":"+sss)
 	})
 	log.Println("Data5u done.")
 	return

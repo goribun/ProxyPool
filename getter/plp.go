@@ -25,8 +25,9 @@ func PLP() (result []string) {
 	doc.Find("#page > table.bg > tbody > tr").Each(func(i int, s *goquery.Selection) {
 		node := strconv.Itoa(i + 1)
 		ss, _ := s.Find("tr:nth-child(" + node + ") > td:nth-child(2)").Html()
+		sss, _ := s.Find("tr:nth-child(" + node + ") > td:nth-child(3)").Html()
 
-		result = append(result, ss)
+		result = append(result, ss + ":" + sss)
 	})
 	if len(result) > 0 {
 		result = result[2:]
