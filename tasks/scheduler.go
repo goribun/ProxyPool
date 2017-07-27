@@ -15,7 +15,6 @@ var IpChan = make(chan string, 500)
 
 func Schedule() {
 
-	log.Println("xxxxxxxxxx")
 	c := cron.New()
 
 	//抓取代理IP并放入channel
