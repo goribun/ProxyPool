@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 
@@ -23,11 +22,8 @@ func Serve() {
 //代理处理器
 func ProxyHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		w.Header().Set("content-type", "application/json")
-		b, err := json.Marshal(storage.ProxyGet())
-		if err != nil {
-			return
-		}
-		w.Write(b)
+		w.Header().Set("content-type", "text/html")
+		ip := storage.ProxyGet()
+		w.Write([]byte(ip))
 	}
 }
